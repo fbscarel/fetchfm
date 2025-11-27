@@ -19,12 +19,12 @@ Features:
 - Interactive selection
 
 Usage:
-    uv run fetch_artist.py "Phil Collins"           # Search by artist (default)
-    uv run fetch_artist.py -t "mpb"                 # Search by tag/genre
-    uv run fetch_artist.py -s "Bohemian Rhapsody"   # Search by song title
-    uv run fetch_artist.py "Basshunter" -n 20       # Fetch 20 results
-    uv run fetch_artist.py "Basshunter" -y          # Download all without prompting
-    uv run fetch_artist.py --rescan                 # Force rescan of local library
+    uv run fetchfm.py "Artist Name"           # Search by artist (default)
+    uv run fetchfm.py -t "80s rock"           # Search by tag/genre
+    uv run fetchfm.py -s "song title"         # Search by song title
+    uv run fetchfm.py "Artist Name" -n 20     # Fetch 20 results
+    uv run fetchfm.py "Artist Name" -y        # Download all without prompting
+    uv run fetchfm.py --rescan                # Force rescan of local library
 """
 
 import argparse

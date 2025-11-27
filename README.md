@@ -40,23 +40,23 @@ pip install -e .
 
 ```bash
 # Search by artist (default)
-uv run fetchfm.py "Phil Collins"
+uv run fetchfm.py "Artist Name"
 
 # Search by tag/genre
 uv run fetchfm.py -t "80s rock"
-uv run fetchfm.py -t "mpb" -n 30
+uv run fetchfm.py -t "brazilian jazz" -n 30
 
 # Search by song title
-uv run fetchfm.py -s "Bohemian Rhapsody"
+uv run fetchfm.py -s "song title"
 
-# Non-interactive mode
-uv run fetchfm.py "Metallica" -y
+# Non-interactive mode (skip selection, download all)
+uv run fetchfm.py "Artist Name" -y
 
 # Use yt-dlp instead of spotdl
-uv run fetchfm.py "Queen" --backend yt-dlp
+uv run fetchfm.py "Artist Name" --backend yt-dlp
 
 # Dry run (show tracks without downloading)
-uv run fetchfm.py "Pink Floyd" --dry-run
+uv run fetchfm.py "Artist Name" --dry-run
 
 # Force rescan local library
 uv run fetchfm.py --rescan
