@@ -12,9 +12,21 @@ install:
 install-dev:
     uv sync --all-extras
 
-# Run fetchfm with arguments
+# Run fetchfm with arguments (use specific recipes below for queries with spaces)
 run *ARGS:
     uv run python fetchfm.py {{ARGS}}
+
+# Search by artist name
+artist QUERY *ARGS:
+    uv run python fetchfm.py "{{QUERY}}" {{ARGS}}
+
+# Search by tag/genre
+tag QUERY *ARGS:
+    uv run python fetchfm.py -t "{{QUERY}}" {{ARGS}}
+
+# Search by song title
+song QUERY *ARGS:
+    uv run python fetchfm.py -s "{{QUERY}}" {{ARGS}}
 
 # Format code
 fmt:
