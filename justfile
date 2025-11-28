@@ -66,8 +66,8 @@ check:
 
 # Clean cache and build artifacts
 clean:
-    rm -rf __pycache__ .pytest_cache .ruff_cache
-    rm -rf dist build *.egg-info
+    rm -rf __pycache__ src/__pycache__ .pytest_cache .ruff_cache
+    rm -rf dist build *.egg-info fetchfm.egg-info
     rm -rf ~/.cache/fetchfm
 
 # Force rescan local music library
