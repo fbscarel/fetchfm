@@ -13,6 +13,11 @@ from .lastfm import (
     get_top_tracks_by_tag,
     search_tracks_by_title,
 )
+from .playlist import (
+    enrich_database_with_tags,
+    generate_all_playlists,
+    list_available_tags,
+)
 from .tui import interactive_select
 
 
@@ -74,12 +79,71 @@ def main():
         action="store_true",
         help="Skip local database (no duplicate detection)",
     )
+
+    # Playlist generation options
+    playlist_group = parser.add_argument_group("playlist generation")
+    playlist_group.add_argument(
+        "--enrich",
+        action="store_true",
+        help="Fetch Last.fm tags for all artists in library",
+    )
+    playlist_group.add_argument(
+        "--playlists",
+        action="store_true",
+        help="Generate playlists based on Last.fm tags",
+    )
+    playlist_group.add_argument(
+        "--list-tags",
+        action="store_true",
+        help="List available tags and artist counts",
+    )
+    playlist_group.add_argument(
+        "--playlist-dir",
+        type=Path,
+        default=None,
+        help="Output directory for playlists (default: ~/Music/Playlists)",
+    )
+    playlist_group.add_argument(
+        "--max-playlists",
+        type=int,
+        default=100,
+        help="Maximum number of playlists to generate (default: 100)",
+    )
     args = parser.parse_args()
 
     # Handle rescan-only mode
-    if args.rescan and not args.query:
+    if args.rescan and not args.query and not args.enrich and not args.playlists:
         db = SongDatabase()
         scan_music_library(db, MUSIC_DIR, force=True)
+        db.close()
+        return
+
+    # Handle playlist-related commands
+    if args.enrich or args.playlists or args.list_tags:
+        db = SongDatabase()
+        scan_music_library(db, MUSIC_DIR, force=args.rescan)
+
+        if args.enrich:
+            print("\nEnriching database with Last.fm tags...")
+            enrich_database_with_tags(db, force=args.rescan)
+
+        if args.list_tags:
+            print("\nAvailable tags:")
+            tags = list_available_tags(db)
+            if tags:
+                for tag, count in tags[:50]:
+                    print(f"  {tag}: {count} artists")
+                if len(tags) > 50:
+                    print(f"  ... and {len(tags) - 50} more")
+            else:
+                print("  No tags found. Run --enrich first.")
+
+        if args.playlists:
+            print("\nGenerating playlists...")
+            generate_all_playlists(
+                db, output_dir=args.playlist_dir, max_playlists=args.max_playlists
+            )
+
         db.close()
         return
 

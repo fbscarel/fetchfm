@@ -4,6 +4,38 @@ import difflib
 import re
 import unicodedata
 
+# Patterns indicating collaborations/features (to be stripped)
+COLLAB_PATTERNS = [
+    r"\s+participação\s+especial\s+.*$",
+    r"\s+participação\s+.*$",
+    r"\s+part\.\s*.*$",
+    r"\s+feat\.\s*.*$",
+    r"\s+ft\.\s*.*$",
+    r"\s+featuring\s+.*$",
+    r"\s+with\s+.*$",
+    r"\s+vs\.?\s+.*$",
+    r"\s+&\s+[^&]+$",  # Only strip trailing "& X" (not middle ones like "A & B")
+]
+
+
+def extract_base_artist(artist: str) -> str:
+    """Extract base artist name, removing collaboration suffixes.
+
+    Examples:
+        "Chitãozinho & Xororó part. Zé Ramalho" -> "Chitãozinho & Xororó"
+        "Daft Punk feat. Pharrell Williams" -> "Daft Punk"
+        "Armin van Buuren vs Sophie Ellis-Bextor" -> "Armin van Buuren"
+    """
+    result = artist.strip()
+
+    for pattern in COLLAB_PATTERNS:
+        new_result = re.sub(pattern, "", result, flags=re.IGNORECASE).strip()
+        # Only accept if we still have something meaningful
+        if len(new_result) >= 2:
+            result = new_result
+
+    return result
+
 
 def normalize_text(text: str) -> str:
     """Normalize text for fuzzy matching."""

@@ -73,3 +73,19 @@ clean:
 # Force rescan local music library
 rescan:
     uv run python fetchfm.py --rescan
+
+# Fetch Last.fm tags for all artists (run once)
+enrich *ARGS:
+    uv run python fetchfm.py --enrich {{ARGS}}
+
+# Generate playlists based on Last.fm tags
+playlists *ARGS:
+    uv run python fetchfm.py --playlists {{ARGS}}
+
+# List available tags
+list-tags:
+    uv run python fetchfm.py --list-tags
+
+# Full workflow: enrich + generate playlists
+generate-playlists *ARGS:
+    uv run python fetchfm.py --enrich --playlists {{ARGS}}

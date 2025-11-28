@@ -33,6 +33,13 @@ class SongDatabase:
             );
             CREATE INDEX IF NOT EXISTS idx_artist_norm ON songs(artist_norm);
             CREATE INDEX IF NOT EXISTS idx_path ON songs(path);
+
+            CREATE TABLE IF NOT EXISTS artist_tags (
+                artist_norm TEXT PRIMARY KEY,
+                artist TEXT,
+                tags TEXT,
+                fetched_at REAL
+            );
         """)
         self.conn.commit()
 
@@ -132,6 +139,77 @@ class SongDatabase:
                 }
 
         return best_match
+
+    # =========================================================================
+    # Artist Tags
+    # =========================================================================
+
+    def get_unique_artists(self) -> list[tuple[str, str]]:
+        """Get unique artists from songs table.
+
+        Returns list of (artist_norm, artist) tuples.
+        """
+        rows = self.conn.execute(
+            "SELECT DISTINCT artist_norm, artist FROM songs WHERE artist_norm != ''"
+        ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
+    def get_artist_tags(self, artist_norm: str) -> list[str] | None:
+        """Get cached tags for an artist, or None if not cached."""
+        row = self.conn.execute(
+            "SELECT tags FROM artist_tags WHERE artist_norm = ?", (artist_norm,)
+        ).fetchone()
+        if row and row[0]:
+            import json
+
+            return json.loads(row[0])
+        return None
+
+    def set_artist_tags(self, artist_norm: str, artist: str, tags: list[str]):
+        """Cache tags for an artist."""
+        import json
+        import time
+
+        self.conn.execute(
+            """INSERT OR REPLACE INTO artist_tags (artist_norm, artist, tags, fetched_at)
+               VALUES (?, ?, ?, ?)""",
+            (artist_norm, artist, json.dumps(tags), time.time()),
+        )
+
+    def get_all_artist_tags(self) -> dict[str, list[str]]:
+        """Get all cached artist tags.
+
+        Returns dict mapping artist_norm -> list of tags.
+        """
+        import json
+
+        rows = self.conn.execute("SELECT artist_norm, tags FROM artist_tags").fetchall()
+        return {r[0]: json.loads(r[1]) if r[1] else [] for r in rows}
+
+    def get_artists_by_tag(self, tag: str) -> list[str]:
+        """Get all artist_norm values that have a specific tag."""
+        import json
+
+        rows = self.conn.execute("SELECT artist_norm, tags FROM artist_tags").fetchall()
+        matching = []
+        tag_lower = tag.lower()
+        for r in rows:
+            if r[1]:
+                tags = json.loads(r[1])
+                if any(t.lower() == tag_lower for t in tags):
+                    matching.append(r[0])
+        return matching
+
+    def get_songs_by_artist_norm(self, artist_norms: list[str]) -> list[dict]:
+        """Get all songs for a list of normalized artist names."""
+        if not artist_norms:
+            return []
+        placeholders = ",".join("?" * len(artist_norms))
+        rows = self.conn.execute(
+            f"SELECT path, artist, title FROM songs WHERE artist_norm IN ({placeholders})",
+            tuple(artist_norms),
+        ).fetchall()
+        return [dict(row) for row in rows]
 
     def close(self):
         self.conn.close()
