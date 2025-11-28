@@ -6,6 +6,7 @@ This module provides functionality to:
 """
 
 import json
+import os
 import time
 import urllib.parse
 import urllib.request
@@ -275,12 +276,9 @@ def generate_playlist(
         f.write(f"# {len(songs)} tracks\n\n")
 
         for song in songs:
-            # Use relative path from music_dir
+            # Calculate path relative to playlist file location
             song_path = Path(song["path"])
-            try:
-                rel_path = song_path.relative_to(music_dir)
-            except ValueError:
-                rel_path = song_path
+            rel_path = os.path.relpath(song_path, output_path.parent)
 
             f.write(f"#EXTINF:-1,{song['artist']} - {song['title']}\n")
             f.write(f"{rel_path}\n")
